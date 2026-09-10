@@ -1,0 +1,38 @@
+"""Defines game-wide constants and configuration values."""
+
+SCREEN_SIZE = (1000, 600)
+
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+
+COLOURS = {
+    "RED": (255, 0, 0),
+    "PINK": (255, 175, 175),
+    "CYAN": (0, 255, 255),
+    "ORANGE": (255, 150, 0),
+    "YELLOW": (255, 255, 0)
+}
+
+GRID_SIZE = 20
+CELL_SIZE = SCREEN_SIZE[1] // GRID_SIZE
+
+HOME_SIZE = 4
+HOME_START = (GRID_SIZE - HOME_SIZE) // 2
+HOME_END = HOME_START + HOME_SIZE - 1
+
+MAZE_CORNERS = {
+    "TOP_LEFT": (1, 1), 
+    "TOP_RIGHT": (GRID_SIZE - 2, 1),
+    "BOTTOM_LEFT": (1, GRID_SIZE - 2), 
+    "BOTTOM_RIGHT": (GRID_SIZE - 2, GRID_SIZE - 2)
+}
+HOME_CORNERS = {
+    "TOP_LEFT": (HOME_START + 1, HOME_START + 1),
+    "TOP_RIGHT": (HOME_END - 1, HOME_START + 1),
+    "BOTTOM_LEFT": (HOME_START + 1, HOME_END - 1),
+    "BOTTOM_RIGHT": (HOME_END - 1, HOME_END - 1)
+}
+
+EMPTY_CELL = 0
+WALL = 1
+ENEMY_TERRITORY = -1
