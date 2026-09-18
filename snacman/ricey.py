@@ -7,7 +7,7 @@ class Ricey(Enemy):
     def __init__(self):
         super().__init__(COLOURS["PINK"], "TOP_LEFT")
 
-    def attack(self, graph, enemies, player_pos, _):
+    def attack(self, graph, enemies_pos, player_pos, _):
         """
         Always chases Snac-Man but prioritises getting to the same row.
         """
@@ -16,4 +16,4 @@ class Ricey(Enemy):
         else:
             target = player_pos
 
-        self.move_towards(graph, enemies, target)
+        self.move_towards(graph, enemies_pos, target)

@@ -161,15 +161,21 @@ class Level:
                         break
 
                 player_pos = self.player.get_pos()
+                enemies_pos = {type(e): (e.col, e.row) for e in self.enemies}
 
                 for e in self.enemies:
                     if scatter:
-                        e.scatter(self.maze.graph, self.enemies)
+                        e.scatter(self.maze.graph, enemies_pos)
+                    
                     else:
                         e.attack(
-                            self.maze.graph, self.enemies, player_pos,
+                            self.maze.graph, 
+                            enemies_pos, 
+                            player_pos,
                             current_frame % 2
                         )
+
+                    enemies_pos[type(e)] = (e.col, e.row)
 
     def add_bonus_points(self, time_spent):
         """

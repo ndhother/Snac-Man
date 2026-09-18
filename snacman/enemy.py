@@ -42,16 +42,16 @@ class Enemy(Character):
         if frame < 3 or self.corner.startswith("BOTTOM"):
             self.move_y(-1)
 
-    def scatter(self, graph, enemies):
+    def scatter(self, graph, enemies_pos):
         """
         Moves enemy towards assigned maze corner or randomly when close enough.
         """
         corner_pos = MAZE_CORNERS[self.corner]
 
         if self.calc_dist(corner_pos, (self.col, self.row)) < SCATTER_DIST:
-            self.move_randomly(graph, enemies)
+            self.move_randomly(graph, enemies_pos)
         else:
-            self.move_towards(graph, enemies, corner_pos)
+            self.move_towards(graph, enemies_pos, corner_pos)
 
     def calc_dist(self, node_a, node_b):
         """
@@ -59,13 +59,15 @@ class Enemy(Character):
         """
         return (node_a[0] - node_b[0]) ** 2 + (node_a[1] - node_b[1]) ** 2
 
-    def move_randomly(self, graph, enemies):
+    def move_randomly(self, graph, enemies_pos):
         """
         Chooses a random neighbouring node to move to.
         """
-        self.adjacent_move(random.choice(graph[(self.col, self.row)]), enemies)
+        self.adjacent_move(
+            random.choice(graph[(self.col, self.row)]), enemies_pos
+        )
 
-    def move_towards(self, graph, enemies, target):
+    def move_towards(self, graph, enemies_pos, target):
         """
         Moves towards the neighbouring node closest to the target.
         """
@@ -73,13 +75,13 @@ class Enemy(Character):
             graph[(self.col, self.row)], 
             key=lambda pos: self.calc_dist(target, pos)
         )
-        self.adjacent_move(new_pos, enemies)
+        self.adjacent_move(new_pos, enemies_pos)
 
-    def adjacent_move(self, new_pos, enemies):
+    def adjacent_move(self, new_pos, enemies_pos):
         """
         Moves to an adjacent node if it is not occupied by another enemy.
         """
-        if any(new_pos == (e.col, e.row) for e in enemies):
+        if any(new_pos == pos for pos in enemies_pos.values()):
             return
 
         if new_pos[0] < self.col:

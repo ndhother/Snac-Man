@@ -7,8 +7,8 @@ class Spicy(Enemy):
     def __init__(self):
         super().__init__(COLOURS["RED"], "TOP_RIGHT")
 
-    def attack(self, graph, enemies, player_pos, _):
+    def attack(self, graph, enemies_pos, player_pos, _):
         """
         Always chases Snac-Man.
         """
-        self.move_towards(graph, enemies, player_pos)
+        self.move_towards(graph, enemies_pos, player_pos)
