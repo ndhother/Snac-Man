@@ -13,6 +13,9 @@ def tango():
 def maze():
     return Maze(SnacMan((4, 5)))
 
+def enemy_positions(enemies):
+    return {type(e): (e.col, e.row) for e in enemies}
+
 def test_tango_chase_on(tango, maze):
-    tango.attack(maze.graph, [tango], (5, 1), True)
+    tango.attack(maze.graph, enemy_positions([tango]), (5, 1), True)
     assert (tango.col, tango.row) == (2, 1)

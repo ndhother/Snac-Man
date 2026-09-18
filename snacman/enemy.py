@@ -81,7 +81,7 @@ class Enemy(Character):
         """
         Moves to an adjacent node if it is not occupied by another enemy.
         """
-        if any(new_pos == pos for pos in enemies_pos.values()):
+        if new_pos in enemies_pos.values():
             return
 
         if new_pos[0] < self.col:

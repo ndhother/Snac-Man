@@ -8,6 +8,9 @@ from snacman.level import ENEMY_PATTERN, ENEMY_MOVE_FRAMES
 def level():
     return Level(5, 100)
 
+def enemy_positions(enemies):
+    return {type(e): (e.col, e.row) for e in enemies}
+
 def test_level_player_start_pos(level):
     assert level.player.get_pos() == START_POS
 
@@ -36,19 +39,19 @@ def test_level_won_when_no_items(level):
 
 @pytest.mark.parametrize("frame", [0, 1, 24, 26, 49, 51])
 def test_move_enemies_at_inactive_frames(level, frame):
-    enemies_pos = [(e.col, e.row) for e in level.enemies]
+    initial_positions = [(e.col, e.row) for e in level.enemies]
     level.frames_since_reset = frame
 
     level.move_enemies(None)
-    assert [(e.col, e.row) for e in level.enemies] == enemies_pos
+    assert [(e.col, e.row) for e in level.enemies] == initial_positions
 
 def test_move_enemies_at_exit_home_frames(level):
     for move in range(1, HOME_SIZE):
-        enemies_pos = [(e.col, e.row) for e in level.enemies]
+        initial_positions = [(e.col, e.row) for e in level.enemies]
         level.frames_since_reset = move * ENEMY_MOVE_FRAMES
 
         level.move_enemies(None)
-        assert [(e.col, e.row) for e in level.enemies] != enemies_pos
+        assert [(e.col, e.row) for e in level.enemies] != initial_positions
 
 def test_move_enemies_at_scatter_frames(level):
     level_copy = Level(5)
@@ -65,12 +68,14 @@ def test_move_enemies_at_scatter_frames(level):
 
     for _ in range(3):
         level.move_enemies(ENEMY_PATTERN[0] - 1)
-        enemies_pos = [(e.col, e.row) for e in level.enemies]
+        expected_positions = [(e.col, e.row) for e in level.enemies]
 
         for e in level_copy.enemies:
-            e.scatter(level.maze.graph, level_copy.enemies)
+            e.scatter(level.maze.graph, enemy_positions(level_copy.enemies))
 
-        assert [(e.col, e.row) for e in level_copy.enemies] == enemies_pos
+        assert (
+            [(e.col, e.row) for e in level_copy.enemies] == expected_positions
+        )
 
 def test_move_enemies_at_attack_frames(level):
     level_copy = Level(5)
@@ -88,14 +93,19 @@ def test_move_enemies_at_attack_frames(level):
 
     for _ in range(3):
         level.move_enemies(ENEMY_PATTERN[0] + 1)
-        enemies_pos = [(e.col, e.row) for e in level.enemies]
+        expected_positions = [(e.col, e.row) for e in level.enemies]
 
         for e in level_copy.enemies:
             e.attack(
-                level.maze.graph, level_copy.enemies, level.player.get_pos(), 1
+                level.maze.graph, 
+                enemy_positions(level_copy.enemies), 
+                level.player.get_pos(), 
+                1
             )
 
-        assert [(e.col, e.row) for e in level_copy.enemies] == enemies_pos
+        assert (
+            [(e.col, e.row) for e in level_copy.enemies] == expected_positions
+        )
 
 @pytest.mark.parametrize(
         "time_spent, bonus",

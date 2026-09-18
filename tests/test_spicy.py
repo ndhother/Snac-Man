@@ -13,7 +13,10 @@ def spicy():
 def maze():
     return Maze(SnacMan((1, 9)))
 
+def enemy_positions(enemies):
+    return {type(e): (e.col, e.row) for e in enemies}
+
 def test_spicy_attack(spicy, maze):
     for y in range(2, 10):
-        spicy.attack(maze.graph, [spicy], (1, 9), None)
+        spicy.attack(maze.graph, enemy_positions([spicy]), (1, 9), None)
         assert (spicy.col, spicy.row) == (1, y)

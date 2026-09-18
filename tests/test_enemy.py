@@ -17,6 +17,9 @@ def enemy_2():
 def maze():
     return Maze(SnacMan((7, 7)))
 
+def enemy_positions(enemies):
+    return {i: (enemy.col, enemy.row) for i, enemy in enumerate(enemies, 1)}
+
 def test_enemy_start_pos(enemy):
     assert (enemy.col, enemy.row) == HOME_CORNERS["TOP_LEFT"]
 
@@ -44,7 +47,7 @@ def test_enemy_scatter(enemy, maze):
     dist = enemy.calc_dist(corner_pos, (enemy.col, enemy.row))
     assert dist > SCATTER_DIST
 
-    enemy.scatter(maze.graph, [enemy])
+    enemy.scatter(maze.graph, enemy_positions([enemy]))
     assert enemy.calc_dist(corner_pos, (enemy.col, enemy.row)) < dist
 
 def test_enemy_move_randomly(enemy, maze):
@@ -52,34 +55,36 @@ def test_enemy_move_randomly(enemy, maze):
 
     for _ in range(10):
         pos = (enemy.col, enemy.row)
-        enemy.move_randomly(maze.graph, [enemy])
+        enemy.move_randomly(maze.graph, enemy_positions([enemy]))
 
         assert maze.grid[enemy.row][enemy.col] == EMPTY_CELL
         assert enemy.calc_dist(pos, (enemy.col, enemy.row)) == 1
 
 def test_enemy_move_towards_horizontal(enemy, maze):
     enemy.col, enemy.row = (2, 1)
-    enemy.move_towards(maze.graph, [enemy], (8, 1))
+    enemy.move_towards(maze.graph, enemy_positions([enemy]), (8, 1))
     assert (enemy.col, enemy.row) == (3, 1)
 
 def test_enemy_move_towards_vertical(enemy, maze):
     enemy.col, enemy.row = (1, 6)
-    enemy.move_towards(maze.graph, [enemy], (1, 2))
+    enemy.move_towards(maze.graph, enemy_positions([enemy]), (1, 2))
     assert (enemy.col, enemy.row) == (1, 5)
 
 def test_enemy_stays_within_graph(enemy, maze):
     enemy.col, enemy.row = (HOME_START - 1, HOME_START)
-    enemy.move_towards(maze.graph, [enemy], (HOME_START + 1, HOME_START))
+    enemy.move_towards(
+        maze.graph, enemy_positions([enemy]), (HOME_START + 1, HOME_START)
+    )
     assert (enemy.col, enemy.row) != (HOME_START, HOME_START)
 
 def test_enemy_adjacent_move(enemy):
     enemy.col, enemy.row = (1, 1)
-    enemy.adjacent_move((1, 2), [enemy])
+    enemy.adjacent_move((1, 2), enemy_positions([enemy]))
     assert (enemy.col, enemy.row) == (1, 2)
 
 def test_enemy_does_not_move_onto_enemy(enemy, enemy_2):
     enemy.col, enemy.row = (1, 1)
     enemy_2.col, enemy_2.row = (1, 2)
 
-    enemy.adjacent_move((1, 2), [enemy, enemy_2])
+    enemy.adjacent_move((1, 2), enemy_positions([enemy, enemy_2]))
     assert (enemy.col, enemy.row) != (1, 2)
