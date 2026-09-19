@@ -20,11 +20,11 @@ def draw_text(screen, text, x=None, y=None, colour=WHITE):
 
     screen.blit(label, (x, y))
 
-def draw_buttons(screen, buttons, pos):
+def draw_buttons(screen, buttons, pos=None):
     """
     Renders a list of Button objects on the screen.
     """
     for b in buttons:
-        colour = b.highlight if b.rect.collidepoint(pos) else b.colour
+        colour = b.highlight if pos and b.rect.collidepoint(pos) else b.colour
         pygame.draw.rect(screen, colour, b.rect)
         screen.blit(b.label, b.label.get_rect(center=b.rect.center))

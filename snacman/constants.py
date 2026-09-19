@@ -3,6 +3,7 @@
 SCREEN_SIZE = (1000, 600)
 
 BLACK = (0, 0, 0)
+GREY = (150, 150, 150)
 WHITE = (255, 255, 255)
 
 COLOURS = {

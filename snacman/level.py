@@ -2,8 +2,9 @@
 
 import pygame
 import sys
+from snacman.button import Button
 from snacman.constants import BLACK, COLOURS, HOME_SIZE
-from snacman.display import draw_text
+from snacman.display import draw_text, draw_buttons
 from snacman.icy import Icy
 from snacman.maze import Maze
 from snacman.ricey import Ricey
@@ -22,9 +23,10 @@ ENEMY_MOVE_FRAMES = 25
 ENEMY_PATTERN = [8, 28, 35, 55, 60, 80, 85]
 
 class Level:
-    def __init__(self, level_num, score=0):
+    def __init__(self, level_num):
         self.level_num = level_num
-        self.score = score
+
+        self.score = 0
         self.lives = 3
 
         self.player = SnacMan(START_POS)
@@ -52,11 +54,17 @@ class Level:
         Main game loop: updates timer, character positions, lives, and score.
         Returns True if level is won, False if level is lost.
         """
+        back_button = Button("BACK", None, x=850, y=35)
+
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
+
+                elif event.type == pygame.MOUSEBUTTONDOWN:
+                    if back_button.rect.collidepoint(pygame.mouse.get_pos()):
+                        return None
 
             self.move_player(pygame.key.get_pressed())
             
@@ -104,18 +112,23 @@ class Level:
             
             screen.fill(BLACK)
             self.sprites.draw(screen)
-            
+
+            draw_buttons(screen, [back_button])
+            draw_text(screen, f"Level {self.level_num}", x=675, y=50)
+
             if self.level_num == 5:
                 draw_text(
-                    screen, "TIMED LEVEL (2 mins)", x=670, y=60, 
+                    screen, 
+                    "TIMED LEVEL (2 mins)", 
+                    x=670, 
+                    y=150, 
                     colour=COLOURS["RED"]
                 )
-            draw_text(screen, f"Level {self.level_num}", x=750, y=150)
             draw_text(
-                screen, f"Time: {timer[0]:02}:{timer[1]:02}", x=730, y=275
+                screen, f"Time: {timer[0]:02}:{timer[1]:02}", x=730, y=250
             )
-            draw_text(screen, f"Score: {self.score}", x=730, y=375)
-            draw_text(screen, f"Lives: {self.lives}", x=730, y=475)
+            draw_text(screen, f"Score: {self.score}", x=730, y=350)
+            draw_text(screen, f"Lives: {self.lives}", x=730, y=450)
             
             pygame.display.update()
             self.clock.tick(FRAME_RATE)
@@ -140,8 +153,8 @@ class Level:
 
     def move_enemies(self, time_spent):
         """
-        Moves enemies out of enemy home after a reset.
-        Decides whether enemies scatter or attack based on level timer.
+        Moves enemies out of enemy home after a reset and decides whether 
+        enemies scatter or attack based on level timer.
         """
         if (
             self.frames_since_reset 
