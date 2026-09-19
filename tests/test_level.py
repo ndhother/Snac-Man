@@ -6,7 +6,13 @@ from snacman.level import ENEMY_PATTERN, ENEMY_MOVE_FRAMES
 
 @pytest.fixture
 def level():
-    return Level(5, 100)
+    return Level(5)
+
+@pytest.fixture(scope="module", autouse=True)
+def pygame_setup():
+    pygame.init()
+    yield
+    pygame.quit()
 
 def enemy_positions(enemies):
     return {type(e): (e.col, e.row) for e in enemies}
@@ -22,20 +28,12 @@ def test_level_enemies(level_num, num_enemies):
     assert len(Level(level_num).enemies) == num_enemies
 
 def test_level_5_times_out(level):
-    pygame.init()
-    try:
-        level.total_frames = LV_5_TIME * FRAME_RATE
-        assert level.play(None) is False
-    finally:
-        pygame.quit()
+    level.total_frames = LV_5_TIME * FRAME_RATE
+    assert level.play(None) is False
 
 def test_level_won_when_no_items(level):
-    pygame.init()
-    try:
-        level.maze.items.empty()
-        assert level.play(None) is True
-    finally:
-        pygame.quit()
+    level.maze.items.empty()
+    assert level.play(None) is True
 
 @pytest.mark.parametrize("frame", [0, 1, 24, 26, 49, 51])
 def test_move_enemies_at_inactive_frames(level, frame):
@@ -125,4 +123,4 @@ def test_move_enemies_at_attack_frames(level):
     )
 def test_add_bonus_points(level, time_spent, bonus):
     level.add_bonus_points(time_spent)
-    assert level.score == 100 + bonus
+    assert level.score == bonus
