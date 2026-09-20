@@ -54,17 +54,18 @@ def level_select():
     """
     Displays level selection page with a numbered button for each level.
     Locked levels appear grey and cannot be played. 
+    A high score is shown under every completed level. 
     BACK button returns user to main menu.
     """
     buttons = [
         Button(
             str(i), 
-            level_select if i in locked_levels else lambda i=i: play_game(i), 
+            lambda i=i: play_game(i) if i in level_scores else level_select, 
             x=(SCREEN_SIZE[0] * ((i - 3) / 3 if i > 3 else i / 4)) - 25,
             y=400 if i > 3 else 200,
             width=50, 
             height=50,
-            colour=GREY if i in locked_levels else WHITE
+            colour=WHITE if i in level_scores else GREY
         )
         for i in range(1, NUM_LEVELS + 1)
     ]
@@ -81,6 +82,13 @@ def level_select():
         draw_text(screen, "CHOOSE LEVEL", y=50)
         draw_buttons(screen, buttons)
 
+        for i, score in level_scores.items():
+            if score:
+                x = (SCREEN_SIZE[0] * ((i - 3) / 3 if i > 3 else i / 4)) - 75
+                draw_text(
+                    screen, f"Score: {score}", x=x, y=475 if i > 3 else 275
+                )
+
         pygame.display.update()
 
 def play_game(level_num):
@@ -89,7 +97,7 @@ def play_game(level_num):
     • Unlocks the next level if the level is won.
     • Calls game_over(False) if the level is lost.
     • Returns to level selection if user exits the level. 
-    • Calls game_over(True, final score) if all levels have been completed.
+    • Calls game_over(True, total score) when the last level is completed.
     """
     level = Level(level_num)
     result = level.play(screen)
@@ -100,13 +108,18 @@ def play_game(level_num):
     if not result:
         return game_over(False)
 
-    if level_num == NUM_LEVELS:
-        return game_over(True, 0)   # TO DO: store + combine scores
+    if level.score > level_scores[level_num]:
+        level_scores[level_num] = level.score
 
-    next_level = level_num + 1
+        if level_num == NUM_LEVELS:
+            return game_over(True, sum(level_scores.values()))
 
-    if next_level in locked_levels:
-        locked_levels.remove(next_level)
+    if level_num < NUM_LEVELS:
+
+        next_level = level_num + 1
+
+        if next_level not in level_scores:
+            level_scores[next_level] = 0
 
     return level_select
 
@@ -185,7 +198,7 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption(GAME_NAME)
 
-    locked_levels = list(range(2, NUM_LEVELS + 1))
+    level_scores = {1: 0}
 
     next_page = main_menu()
 
