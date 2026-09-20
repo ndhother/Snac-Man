@@ -106,21 +106,36 @@ def test_move_enemies_at_attack_frames(level):
         )
 
 @pytest.mark.parametrize(
-        "time_spent, bonus",
+        "lives, time_spent, score_bonus",
         [
-            (0, 5000),
-            (59, 5000),
-            (60, 4000),
-            (74, 4000),
-            (75, 3000),
-            (89, 3000),
-            (90, 2000),
-            (104, 2000),
-            (105, 1000),
-            (119, 1000),
-            (120, 0),
+            (1, 0, 500),
+            (2, 0, 750),
+            (3, 0, 1000),
+            (3, 59, 1000),
+            (1, 60, 400),
+            (2, 60, 650),
+            (3, 60, 900),
+            (3, 74, 900),
+            (1, 75, 300),
+            (2, 75, 550),
+            (3, 75, 800),
+            (3, 89, 800),
+            (1, 90, 200),
+            (2, 90, 450),
+            (3, 90, 700),
+            (3, 104, 700),
+            (1, 105, 100),
+            (2, 105, 350),
+            (3, 105, 600),
+            (3, 119, 600),
+            (1, 120, 0),
+            (2, 120, 250),
+            (3, 120, 500),
+            (3, 135, 500),
         ]
     )
-def test_add_bonus_points(level, time_spent, bonus):
-    level.add_bonus_points(time_spent)
-    assert level.score == bonus
+def test_calc_score(level, lives, time_spent, score_bonus):
+    level.lives = lives
+    level.calc_score(time_spent)
+
+    assert level.score == 1000 + score_bonus

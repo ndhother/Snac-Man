@@ -17,8 +17,6 @@ START_POS = (1, 1)
 FRAME_RATE = 60
 LV_5_TIME = 120
 
-ITEM_VALUE = 5
-
 ENEMY_MOVE_FRAMES = 25
 ENEMY_PATTERN = [8, 28, 35, 55, 60, 80, 85]
 
@@ -83,7 +81,7 @@ class Level:
 
             self.move_enemies(time_spent)
 
-            # Remove 1 life for contact with enemy
+            # Deduct 1 life for contact with enemy
             if pygame.sprite.spritecollide(self.player, self.enemies, False):
                 self.lives -= 1
 
@@ -97,14 +95,11 @@ class Level:
 
                 self.frames_since_reset = 0
 
-            # Award points when an item is collected
-            for _ in pygame.sprite.spritecollide(
-                self.player, self.maze.items, True
-            ):
-                self.score += ITEM_VALUE
+            # Remove item sprites when collected by player
+            pygame.sprite.spritecollide(self.player, self.maze.items, True)
 
             if not self.maze.items:
-                self.add_bonus_points(time_spent)
+                self.calc_score(time_spent)
                 return True
 
             self.total_frames += 1
@@ -121,14 +116,13 @@ class Level:
                     screen, 
                     "TIMED LEVEL (2 mins)", 
                     x=670, 
-                    y=150, 
+                    y=180, 
                     colour=COLOURS["RED"]
                 )
             draw_text(
                 screen, f"Time: {timer[0]:02}:{timer[1]:02}", x=730, y=250
             )
-            draw_text(screen, f"Score: {self.score}", x=730, y=350)
-            draw_text(screen, f"Lives: {self.lives}", x=730, y=450)
+            draw_text(screen, f"Lives: {self.lives}", x=730, y=400)
             
             pygame.display.update()
             self.clock.tick(FRAME_RATE)
@@ -190,21 +184,17 @@ class Level:
 
                     enemies_pos[type(e)] = (e.col, e.row)
 
-    def add_bonus_points(self, time_spent):
+    def calc_score(self, time_spent):
         """
-        Increases player score based on speed of level completion.
+        Determines player score based on number of lives remaining and 
+        speed of level completion.
         """
-        if time_spent < 60:
-            self.score += 5000
-        
-        elif time_spent < 75:
-            self.score += 4000
-        
-        elif time_spent < 90:
-            self.score += 3000
-        
-        elif time_spent < 105:
-            self.score += 2000
-        
-        elif time_spent < 120:
-            self.score += 1000
+        self.score = 1000
+
+        # Add 250 points if 1 life lost, 500 points if no lives lost
+        self.score += (self.lives - 1) * 250
+
+        for i, time in enumerate(range(60, 135, 15)):
+            if time_spent < time:
+                self.score += 500 - 100 * i
+                return
