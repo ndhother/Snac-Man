@@ -4,6 +4,7 @@ import pygame
 import sys
 from snacman.button import Button
 from snacman.constants import SCREEN_SIZE, BLACK, GREY, WHITE, COLOURS
+from snacman.constants import FRAME_RATE
 from snacman.display import draw_text, draw_buttons
 from snacman.level import Level
 
@@ -93,14 +94,14 @@ def level_select():
 
 def play_game(level_num):
     """
-    Creates and runs a level.
+    Creates a level and handles its outcome.
     • Unlocks the next level if the level is won.
     • Calls game_over(False) if the level is lost.
     • Returns to level selection if user exits the level. 
     • Calls game_over(True, total score) when the last level is completed.
     """
     level = Level(level_num)
-    result = level.play(screen)
+    result = play_level(level)
 
     if result is None:
         return level_select
@@ -122,6 +123,48 @@ def play_game(level_num):
             level_scores[next_level] = 0
 
     return level_select
+
+def play_level(level):
+    """
+    Runs the game loop for a level.
+    Handles user input and displays the level until it is won, lost, or exited.
+    """
+    buttons = [Button("BACK", "BACK", x=850, y=35)]
+    
+    while True:
+        pos = pygame.mouse.get_pos()
+        choice = process_events(buttons, pos)
+
+        if choice:
+            return None
+
+        result = level.update()
+
+        if result is not None:
+            return result
+
+        screen.fill(BLACK)
+        level.sprites.draw(screen)
+
+        draw_buttons(screen, buttons)
+        draw_text(screen, f"Level {level.level_num}", x=675, y=50)
+
+        if level.level_num == NUM_LEVELS:
+            draw_text(
+                screen, 
+                "TIMED LEVEL (2 mins)", 
+                x=670, 
+                y=180, 
+                colour=COLOURS["RED"]
+            )
+
+        timer = f"{level.display_time // 60:02}:{level.display_time % 60:02}"
+        draw_text(screen, f"Time: {timer}", x=730, y=250)
+
+        draw_text(screen, f"Lives: {level.lives}", x=730, y=400)
+        
+        pygame.display.update()
+        clock.tick(FRAME_RATE)
 
 def instructions():
     """
@@ -198,6 +241,7 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode(SCREEN_SIZE)
     pygame.display.set_caption(GAME_NAME)
 
+    clock = pygame.time.Clock()
     level_scores = {1: 0}
 
     next_page = main_menu()

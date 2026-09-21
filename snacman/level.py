@@ -1,10 +1,7 @@
 """Provides the Level class for running an individual level of the game."""
 
 import pygame
-import sys
-from snacman.button import Button
-from snacman.constants import BLACK, COLOURS, HOME_SIZE
-from snacman.display import draw_text, draw_buttons
+from snacman.constants import FRAME_RATE, HOME_SIZE
 from snacman.icy import Icy
 from snacman.maze import Maze
 from snacman.ricey import Ricey
@@ -13,8 +10,6 @@ from snacman.spicy import Spicy
 from snacman.tango import Tango
 
 START_POS = (1, 1)
-
-FRAME_RATE = 60
 LV_5_TIME = 120
 
 ENEMY_MOVE_FRAMES = 25
@@ -43,89 +38,54 @@ class Level:
         self.sprites = pygame.sprite.Group(
             self.maze.walls, self.maze.items, self.player, self.enemies
         )
-        self.clock = pygame.time.Clock()
         self.total_frames = 0
         self.frames_since_reset = 0
 
-    def play(self, screen):
+    def update(self):
         """
-        Main game loop: updates timer, character positions, lives, and score.
-        Returns True if level is won, False if level is lost.
+        Updates timer, character positions, lives, and score for one frame. 
+        Returns True if level is won, False if lost, or None otherwise.
         """
-        back_button = Button("BACK", None, x=850, y=35)
+        self.move_player(pygame.key.get_pressed())
+        
+        time_spent = self.total_frames // FRAME_RATE
 
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+        if self.level_num == 5:
+            self.display_time = LV_5_TIME - time_spent    # Timer counting down
 
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if back_button.rect.collidepoint(pygame.mouse.get_pos()):
-                        return None
+            if self.display_time <= 0:
+                return False
 
-            self.move_player(pygame.key.get_pressed())
-            
-            time_spent = self.total_frames // FRAME_RATE
-            
-            if self.level_num == 5:   # Timer counting down
-                remaining_time = LV_5_TIME - time_spent
+        else:
+            self.display_time = time_spent    # Timer counting up
 
-                if remaining_time <= 0:
-                    return False
-                
-                timer = remaining_time // 60, remaining_time % 60
-            
-            else:   # Timer counting up
-                timer = time_spent // 60, time_spent % 60
+        self.move_enemies(time_spent)
 
-            self.move_enemies(time_spent)
+        # Deduct 1 life for contact with enemy
+        if pygame.sprite.spritecollide(self.player, self.enemies, False):
+            self.lives -= 1
 
-            # Deduct 1 life for contact with enemy
-            if pygame.sprite.spritecollide(self.player, self.enemies, False):
-                self.lives -= 1
+            if not self.lives:
+                return False
 
-                if not self.lives:
-                    return False
+            self.player.reset()
 
-                self.player.reset()
+            for e in self.enemies:
+                e.reset()
 
-                for e in self.enemies:
-                    e.reset()
+            self.frames_since_reset = 0
 
-                self.frames_since_reset = 0
+        # Remove item sprites when collected by player
+        pygame.sprite.spritecollide(self.player, self.maze.items, True)
 
-            # Remove item sprites when collected by player
-            pygame.sprite.spritecollide(self.player, self.maze.items, True)
+        if not self.maze.items:
+            self.calc_score(time_spent)
+            return True
 
-            if not self.maze.items:
-                self.calc_score(time_spent)
-                return True
+        self.total_frames += 1
+        self.frames_since_reset += 1
 
-            self.total_frames += 1
-            self.frames_since_reset += 1
-            
-            screen.fill(BLACK)
-            self.sprites.draw(screen)
-
-            draw_buttons(screen, [back_button])
-            draw_text(screen, f"Level {self.level_num}", x=675, y=50)
-
-            if self.level_num == 5:
-                draw_text(
-                    screen, 
-                    "TIMED LEVEL (2 mins)", 
-                    x=670, 
-                    y=180, 
-                    colour=COLOURS["RED"]
-                )
-            draw_text(
-                screen, f"Time: {timer[0]:02}:{timer[1]:02}", x=730, y=250
-            )
-            draw_text(screen, f"Lives: {self.lives}", x=730, y=400)
-            
-            pygame.display.update()
-            self.clock.tick(FRAME_RATE)
+        return None
 
     def move_player(self, keys):
         """

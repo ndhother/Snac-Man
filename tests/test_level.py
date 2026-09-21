@@ -1,7 +1,7 @@
 import pygame
 import pytest
-from snacman.constants import HOME_SIZE
-from snacman.level import Level, START_POS, FRAME_RATE, LV_5_TIME
+from snacman.constants import FRAME_RATE, HOME_SIZE
+from snacman.level import Level, START_POS, LV_5_TIME
 from snacman.level import ENEMY_PATTERN, ENEMY_MOVE_FRAMES
 
 @pytest.fixture
@@ -27,13 +27,27 @@ def test_level_player_start_pos(level):
 def test_level_enemies(level_num, num_enemies):
     assert len(Level(level_num).enemies) == num_enemies
 
+@pytest.mark.parametrize(
+        "level_num, display_time", 
+        [(1, 0), (2, 0), (3, 0), (4, 0), (5, LV_5_TIME)]
+    )
+def test_level_display_time(level_num, display_time):
+    level = Level(level_num)
+    level.update()
+    assert level.display_time == display_time
+
+def test_level_first_update(level):
+    assert level.update() is None
+    assert level.total_frames == 1
+    assert level.frames_since_reset == 1
+
 def test_level_5_times_out(level):
     level.total_frames = LV_5_TIME * FRAME_RATE
-    assert level.play(None) is False
+    assert level.update() is False
 
 def test_level_won_when_no_items(level):
     level.maze.items.empty()
-    assert level.play(None) is True
+    assert level.update() is True
 
 @pytest.mark.parametrize("frame", [0, 1, 24, 26, 49, 51])
 def test_move_enemies_at_inactive_frames(level, frame):
