@@ -11,4 +11,6 @@ class Spicy(Enemy):
         """
         Always chases Snac-Man.
         """
-        self.move_towards(graph, enemies_pos, player_pos)
+        self.move_towards(
+            self.find_possible_moves(graph, enemies_pos), player_pos
+        )

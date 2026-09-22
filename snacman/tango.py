@@ -11,7 +11,9 @@ class Tango(Enemy):
         """
         Constantly switches between chasing Snac-Man and random movement.
         """
+        moves = self.find_possible_moves(graph, enemies_pos)
+
         if chase:
-            self.move_towards(graph, enemies_pos, player_pos)
+            self.move_towards(moves, player_pos)
         else:
-            self.move_randomly(graph, enemies_pos)
+            self.move_randomly(moves)

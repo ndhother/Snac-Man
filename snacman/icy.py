@@ -15,6 +15,8 @@ class Icy(Enemy):
         Chases Snac-Man when close to Spicy and far from Snac-Man.
         Otherwise, constantly switches between chasing and random movement.
         """
+        moves = self.find_possible_moves(graph, enemies_pos)
+
         my_pos = (self.col, self.row)
         spicy_pos = enemies_pos.get(Spicy)
 
@@ -24,6 +26,6 @@ class Icy(Enemy):
             and self.calc_dist(my_pos, spicy_pos) < CHASE_DIST 
             and self.calc_dist(my_pos, player_pos) > CHASE_DIST
         ):
-            self.move_towards(graph, enemies_pos, player_pos)
+            self.move_towards(moves, player_pos)
         else:
-            self.move_randomly(graph, enemies_pos)
+            self.move_randomly(moves)

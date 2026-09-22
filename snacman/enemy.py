@@ -46,12 +46,23 @@ class Enemy(Character):
         """
         Moves enemy towards assigned maze corner or randomly when close enough.
         """
+        moves = self.find_possible_moves(graph, enemies_pos)
         corner_pos = MAZE_CORNERS[self.corner]
 
         if self.calc_dist(corner_pos, (self.col, self.row)) < SCATTER_DIST:
-            self.move_randomly(graph, enemies_pos)
+            self.move_randomly(moves)
         else:
-            self.move_towards(graph, enemies_pos, corner_pos)
+            self.move_towards(moves, corner_pos)
+
+    def find_possible_moves(self, graph, enemies_pos):
+        """
+        Returns the list of adjacent nodes that are not occupied by 
+        another enemy.
+        """
+        return [
+            pos for pos in graph[(self.col, self.row)] 
+            if pos not in enemies_pos.values()
+        ]
 
     def calc_dist(self, node_a, node_b):
         """
@@ -59,31 +70,26 @@ class Enemy(Character):
         """
         return (node_a[0] - node_b[0]) ** 2 + (node_a[1] - node_b[1]) ** 2
 
-    def move_randomly(self, graph, enemies_pos):
+    def move_randomly(self, moves):
         """
         Chooses a random neighbouring node to move to.
         """
-        self.adjacent_move(
-            random.choice(graph[(self.col, self.row)]), enemies_pos
-        )
+        if moves:
+            self.adjacent_move(random.choice(moves))
 
-    def move_towards(self, graph, enemies_pos, target):
+    def move_towards(self, moves, target):
         """
         Moves towards the neighbouring node closest to the target.
         """
-        new_pos = min(
-            graph[(self.col, self.row)], 
-            key=lambda pos: self.calc_dist(target, pos)
-        )
-        self.adjacent_move(new_pos, enemies_pos)
+        if moves:
+            self.adjacent_move(
+                min(moves, key=lambda pos: self.calc_dist(target, pos))
+            )
 
-    def adjacent_move(self, new_pos, enemies_pos):
+    def adjacent_move(self, new_pos):
         """
-        Moves to an adjacent node if it is not occupied by another enemy.
+        Moves to the specified adjacent node.
         """
-        if new_pos in enemies_pos.values():
-            return
-
         if new_pos[0] < self.col:
             self.move_x(-1)
 

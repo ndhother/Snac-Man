@@ -11,9 +11,12 @@ class Ricey(Enemy):
         """
         Always chases Snac-Man but prioritises getting to the same row.
         """
-        if player_pos[1] != self.row and (self.col, player_pos[1]) in graph:
-            target = (self.col, player_pos[1])
-        else:
-            target = player_pos
+        moves = self.find_possible_moves(graph, enemies_pos)
 
-        self.move_towards(graph, enemies_pos, target)
+        same_row_cell = (self.col, player_pos[1])
+        target = (
+            same_row_cell 
+            if player_pos[1] != self.row and same_row_cell in graph 
+            else player_pos
+        )
+        self.move_towards(moves, target)
