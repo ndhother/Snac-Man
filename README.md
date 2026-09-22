@@ -8,10 +8,10 @@ Snac-Man was originally created as an A-level Computer Science project. This ver
 * Five playable levels with increasing difficulty
 * Four enemy types with different behaviours
 * Randomly generated mazes
-* Collision detection with enemies and maze walls
-* Lives and score system
-* Time-based bonus points
+* Collision detection with enemies, items, and maze walls
+* Lives and performance-based score system
 * A timed final level
+* Sequential level unlocking and level selection
 * Automated tests using pytest
 
 ## Requirements
