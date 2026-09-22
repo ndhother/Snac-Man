@@ -47,7 +47,7 @@ def main_menu():
         
         screen.fill(BLACK)
         draw_text(screen, GAME_NAME.upper(), y=125)
-        draw_buttons(screen, buttons)
+        draw_buttons(screen, buttons, pos)
 
         pygame.display.update()
 
@@ -66,7 +66,8 @@ def level_select():
             y=400 if i > 3 else 200,
             width=50, 
             height=50,
-            colour=WHITE if i in level_scores else GREY
+            colour=WHITE if i in level_scores else GREY,
+            highlight=COLOURS["YELLOW"] if i in level_scores else None
         )
         for i in range(1, NUM_LEVELS + 1)
     ]
@@ -80,8 +81,8 @@ def level_select():
             return choice
         
         screen.fill(BLACK)
-        draw_text(screen, "CHOOSE LEVEL", y=50)
-        draw_buttons(screen, buttons)
+        draw_text(screen, "SELECT LEVEL", y=50)
+        draw_buttons(screen, buttons, pos)
 
         for i, score in level_scores.items():
             if score:
@@ -146,7 +147,7 @@ def play_level(level):
         screen.fill(BLACK)
         level.sprites.draw(screen)
 
-        draw_buttons(screen, buttons)
+        draw_buttons(screen, buttons, pos)
         draw_text(screen, f"Level {level.level_num}", x=675, y=50)
 
         if level.level_num == NUM_LEVELS:
@@ -181,7 +182,7 @@ def instructions():
         
         screen.fill(BLACK)
         draw_text(screen, "INSTRUCTIONS", y=50)
-        draw_buttons(screen, buttons)
+        draw_buttons(screen, buttons, pos)
 
         draw_text(
             screen, 
@@ -228,7 +229,7 @@ def game_over(win, score=None):
         else:
             draw_text(screen, "YOU LOSE", y=200)
 
-        draw_buttons(screen, buttons)
+        draw_buttons(screen, buttons, pos)
 
         pygame.display.update()
 
