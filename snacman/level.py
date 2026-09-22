@@ -1,9 +1,7 @@
 """Provides the Level class for running an individual level of the game."""
 
 import pygame
-import sys
-from snacman.constants import BLACK, COLOURS, HOME_SIZE
-from snacman.display import draw_text
+from snacman.constants import FRAME_RATE, HOME_SIZE
 from snacman.icy import Icy
 from snacman.maze import Maze
 from snacman.ricey import Ricey
@@ -12,19 +10,16 @@ from snacman.spicy import Spicy
 from snacman.tango import Tango
 
 START_POS = (1, 1)
-
-FRAME_RATE = 60
 LV_5_TIME = 120
-
-ITEM_VALUE = 5
 
 ENEMY_MOVE_FRAMES = 25
 ENEMY_PATTERN = [8, 28, 35, 55, 60, 80, 85]
 
 class Level:
-    def __init__(self, level_num, score=0):
+    def __init__(self, level_num):
         self.level_num = level_num
-        self.score = score
+
+        self.score = 0
         self.lives = 3
 
         self.player = SnacMan(START_POS)
@@ -43,82 +38,54 @@ class Level:
         self.sprites = pygame.sprite.Group(
             self.maze.walls, self.maze.items, self.player, self.enemies
         )
-        self.clock = pygame.time.Clock()
         self.total_frames = 0
         self.frames_since_reset = 0
 
-    def play(self, screen):
+    def update(self):
         """
-        Main game loop: updates timer, character positions, lives, and score.
-        Returns True if level is won, False if level is lost.
+        Updates timer, character positions, lives, and score for one frame. 
+        Returns True if level is won, False if lost, or None otherwise.
         """
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
+        self.move_player(pygame.key.get_pressed())
+        
+        time_spent = self.total_frames // FRAME_RATE
 
-            self.move_player(pygame.key.get_pressed())
-            
-            time_spent = self.total_frames // FRAME_RATE
-            
-            if self.level_num == 5:   # Timer counting down
-                remaining_time = LV_5_TIME - time_spent
+        if self.level_num == 5:
+            self.display_time = LV_5_TIME - time_spent    # Timer counting down
 
-                if remaining_time <= 0:
-                    return False
-                
-                timer = remaining_time // 60, remaining_time % 60
-            
-            else:   # Timer counting up
-                timer = time_spent // 60, time_spent % 60
+            if self.display_time <= 0:
+                return False
 
-            self.move_enemies(time_spent)
+        else:
+            self.display_time = time_spent    # Timer counting up
 
-            # Remove 1 life for contact with enemy
-            if pygame.sprite.spritecollide(self.player, self.enemies, False):
-                self.lives -= 1
+        self.move_enemies(time_spent)
 
-                if not self.lives:
-                    return False
+        # Deduct 1 life for contact with enemy
+        if pygame.sprite.spritecollide(self.player, self.enemies, False):
+            self.lives -= 1
 
-                self.player.reset()
+            if not self.lives:
+                return False
 
-                for e in self.enemies:
-                    e.reset()
+            self.player.reset()
 
-                self.frames_since_reset = 0
+            for e in self.enemies:
+                e.reset()
 
-            # Award points when an item is collected
-            for _ in pygame.sprite.spritecollide(
-                self.player, self.maze.items, True
-            ):
-                self.score += ITEM_VALUE
+            self.frames_since_reset = 0
 
-            if not self.maze.items:
-                self.add_bonus_points(time_spent)
-                return True
+        # Remove item sprites when collected by player
+        pygame.sprite.spritecollide(self.player, self.maze.items, True)
 
-            self.total_frames += 1
-            self.frames_since_reset += 1
-            
-            screen.fill(BLACK)
-            self.sprites.draw(screen)
-            
-            if self.level_num == 5:
-                draw_text(
-                    screen, "TIMED LEVEL (2 mins)", x=670, y=60, 
-                    colour=COLOURS["RED"]
-                )
-            draw_text(screen, f"Level {self.level_num}", x=750, y=150)
-            draw_text(
-                screen, f"Time: {timer[0]:02}:{timer[1]:02}", x=730, y=275
-            )
-            draw_text(screen, f"Score: {self.score}", x=730, y=375)
-            draw_text(screen, f"Lives: {self.lives}", x=730, y=475)
-            
-            pygame.display.update()
-            self.clock.tick(FRAME_RATE)
+        if not self.maze.items:
+            self.calc_score(time_spent)
+            return True
+
+        self.total_frames += 1
+        self.frames_since_reset += 1
+
+        return None
 
     def move_player(self, keys):
         """
@@ -140,8 +107,8 @@ class Level:
 
     def move_enemies(self, time_spent):
         """
-        Moves enemies out of enemy home after a reset.
-        Decides whether enemies scatter or attack based on level timer.
+        Moves enemies out of enemy home after a reset and decides whether 
+        enemies scatter or attack based on level timer.
         """
         if (
             self.frames_since_reset 
@@ -161,31 +128,33 @@ class Level:
                         break
 
                 player_pos = self.player.get_pos()
+                enemies_pos = {type(e): (e.col, e.row) for e in self.enemies}
 
                 for e in self.enemies:
                     if scatter:
-                        e.scatter(self.maze.graph, self.enemies)
+                        e.scatter(self.maze.graph, enemies_pos)
+                    
                     else:
                         e.attack(
-                            self.maze.graph, self.enemies, player_pos,
+                            self.maze.graph, 
+                            enemies_pos, 
+                            player_pos,
                             current_frame % 2
                         )
 
-    def add_bonus_points(self, time_spent):
+                    enemies_pos[type(e)] = (e.col, e.row)
+
+    def calc_score(self, time_spent):
         """
-        Increases player score based on speed of level completion.
+        Determines player score based on number of lives remaining and 
+        speed of level completion.
         """
-        if time_spent < 60:
-            self.score += 5000
-        
-        elif time_spent < 75:
-            self.score += 4000
-        
-        elif time_spent < 90:
-            self.score += 3000
-        
-        elif time_spent < 105:
-            self.score += 2000
-        
-        elif time_spent < 120:
-            self.score += 1000
+        self.score = 1000
+
+        # Add 250 points if 1 life lost, 500 points if no lives lost
+        self.score += (self.lives - 1) * 250
+
+        for i, time in enumerate(range(60, 135, 15)):
+            if time_spent < time:
+                self.score += 500 - 100 * i
+                return

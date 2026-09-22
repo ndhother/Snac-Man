@@ -1,13 +1,13 @@
 """Provides the Button class for clickable menu buttons."""
 
 import pygame
-from snacman.constants import SCREEN_SIZE, BLACK, WHITE
+from snacman.constants import SCREEN_SIZE, BLACK, WHITE, COLOURS
 from snacman.display import FONT
 
 class Button:
     def __init__(
             self, text, choice, x=None, y=None, width=None, height=None, 
-            colour=WHITE, highlight=None, text_colour=BLACK
+            colour=WHITE, highlight=COLOURS["YELLOW"], text_colour=BLACK
         ):
         self.label = FONT.render(text, True, text_colour)
         self.choice = choice

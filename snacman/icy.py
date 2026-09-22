@@ -10,25 +10,22 @@ class Icy(Enemy):
     def __init__(self):
         super().__init__(COLOURS["CYAN"], "BOTTOM_RIGHT")
 
-    def attack(self, graph, enemies, player_pos, chase):
+    def attack(self, graph, enemies_pos, player_pos, chase):
         """
         Chases Snac-Man when close to Spicy and far from Snac-Man.
         Otherwise, constantly switches between chasing and random movement.
         """
-        my_pos = (self.col, self.row)
+        moves = self.find_possible_moves(graph, enemies_pos)
 
-        spicy = None
-        for e in enemies:
-            if type(e) is Spicy:
-                spicy = e
-                break
+        my_pos = (self.col, self.row)
+        spicy_pos = enemies_pos.get(Spicy)
 
         if (
             chase
-            or spicy
-            and self.calc_dist(my_pos, (spicy.col, spicy.row)) < CHASE_DIST 
+            or spicy_pos 
+            and self.calc_dist(my_pos, spicy_pos) < CHASE_DIST 
             and self.calc_dist(my_pos, player_pos) > CHASE_DIST
         ):
-            self.move_towards(graph, enemies, player_pos)
+            self.move_towards(moves, player_pos)
         else:
-            self.move_randomly(graph, enemies)
+            self.move_randomly(moves)

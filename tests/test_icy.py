@@ -19,6 +19,9 @@ def maze():
 def spicy():
     return Spicy()
 
+def enemy_positions(enemies):
+    return {type(e): (e.col, e.row) for e in enemies}
+
 @pytest.mark.parametrize(
         "spicy_pos, player_pos", 
         [
@@ -30,14 +33,16 @@ def spicy():
     )
 def test_icy_chase_on_with_spicy(icy, maze, spicy, spicy_pos, player_pos):
     spicy.col, spicy.row = spicy_pos
-    icy.attack(maze.graph, [icy, spicy], player_pos, True)
+    icy.attack(maze.graph, enemy_positions([icy, spicy]), player_pos, True)
     assert (icy.col, icy.row) == (2, 1)
 
 def test_icy_chase_on_without_spicy(icy, maze):
-    icy.attack(maze.graph, [icy], (1, 6), True)
+    icy.attack(maze.graph, enemy_positions([icy]), (1, 6), True)
     assert (icy.col, icy.row) == (1, 2)
 
 def test_icy_chase_off(icy, maze, spicy):
     spicy.col, spicy.row = (1, 2)
-    icy.attack(maze.graph, [icy, spicy], (GRID_SIZE - 2, 1), False)
+    icy.attack(
+        maze.graph, enemy_positions([icy, spicy]), (GRID_SIZE - 2, 1), False
+    )
     assert (icy.col, icy.row) == (2, 1)
